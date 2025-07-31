@@ -1,36 +1,46 @@
 """
-FastAPI Backend for RAG Application
-Hosts on Railway with Supabase integration
+Meta-Optimized FastAPI Backend for RAG Application
+Production-ready deployment on Railway with Supabase integration
 """
 
-from fastapi import FastAPI, Request, HTTPException, Depends
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from contextlib import asynccontextmanager
-import os
+import asyncio
 import logging
+import os
 import time
-from typing import Optional
+from contextlib import asynccontextmanager
+from typing import Dict, Optional
+
+import orjson
+from fastapi import FastAPI, HTTPException, Request, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, ORJSONResponse
+from prometheus_client import Counter, Histogram, generate_latest
 
 # Import configurations and utilities
 from backend.config.settings import get_settings
 from backend.auth.middleware import get_current_user
 from backend.auth.supabase_client import get_supabase_client
 
-# Configure logging
+# Configure structured logging (Meta-style)
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format='{"timestamp":"%(asctime)s","level":"%(levelname)s","service":"rag-api","message":"%(message)s"}',
+    datefmt='%Y-%m-%dT%H:%M:%S'
 )
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("rag-api")
 
-# Import monitoring
-from prometheus_client import Counter, Histogram, generate_latest
-from fastapi.responses import Response
-
-# Metrics
-REQUEST_COUNT = Counter('http_requests_total', 'Total HTTP requests', ['method', 'endpoint', 'status'])
-REQUEST_LATENCY = Histogram('http_request_duration_seconds', 'HTTP request latency')
+# Production metrics (Meta-style observability)
+REQUEST_COUNT = Counter(
+    'http_requests_total', 
+    'Total HTTP requests', 
+    ['method', 'endpoint', 'status', 'version']
+)
+REQUEST_LATENCY = Histogram(
+    'http_request_duration_seconds', 
+    'HTTP request latency',
+    buckets=[0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0]
+)
+ACTIVE_CONNECTIONS = Counter('active_connections_total', 'Active connections')
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -48,14 +58,20 @@ async def lifespan(app: FastAPI):
     
     logger.info("🛑 Shutting down RAG API...")
 
-# Create FastAPI app
+# Create FastAPI app with Meta-style configuration
 app = FastAPI(
     title="RAG Application API",
-    description="Backend API for Claude-like RAG application with document intelligence",
+    description="Meta-optimized backend API for Claude-like RAG application",
     version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
-    lifespan=lifespan
+    docs_url="/docs" if get_settings().app_env != "production" else None,
+    redoc_url="/redoc" if get_settings().app_env != "production" else None,
+    lifespan=lifespan,
+    default_response_class=ORJSONResponse,  # 2x faster JSON serialization
+    openapi_tags=[
+        {"name": "health", "description": "Health check operations"},
+        {"name": "auth", "description": "Authentication operations"},
+        {"name": "metrics", "description": "Monitoring and metrics"},
+    ]
 )
 
 # Get settings
@@ -75,27 +91,69 @@ app.add_middleware(
 )
 
 @app.middleware("http")
-async def add_metrics_middleware(request: Request, call_next):
-    """Add metrics and timing to all requests."""
-    start_time = time.time()
+async def add_observability_middleware(request: Request, call_next):
+    """Meta-style observability middleware with detailed metrics."""
+    start_time = time.perf_counter()
     
-    response = await call_next(request)
+    # Track active connections
+    ACTIVE_CONNECTIONS.inc()
     
-    # Calculate processing time
-    process_time = time.time() - start_time
+    # Get client info for better observability
+    client_ip = request.client.host if request.client else "unknown"
+    user_agent = request.headers.get("user-agent", "unknown")
     
-    # Track metrics
-    REQUEST_LATENCY.observe(process_time)
-    REQUEST_COUNT.labels(
-        method=request.method,
-        endpoint=request.url.path,
-        status=response.status_code
-    ).inc()
+    try:
+        response = await call_next(request)
+        
+        # Calculate precise processing time
+        process_time = time.perf_counter() - start_time
+        
+        # Enhanced metrics tracking
+        REQUEST_LATENCY.observe(process_time)
+        REQUEST_COUNT.labels(
+            method=request.method,
+            endpoint=request.url.path,
+            status=response.status_code,
+            version="v1"
+        ).inc()
+        
+        # Add performance headers
+        response.headers.update({
+            "X-Process-Time": f"{process_time:.4f}",
+            "X-Request-ID": getattr(request.state, "request_id", "unknown"),
+            "X-API-Version": "1.0.0"
+        })
+        
+        # Structured logging for requests > 1s (Meta-style alerting)
+        if process_time > 1.0:
+            logger.warning(
+                f"Slow request detected",
+                extra={
+                    "method": request.method,
+                    "path": request.url.path,
+                    "duration": process_time,
+                    "client_ip": client_ip,
+                    "status": response.status_code
+                }
+            )
+        
+        return response
     
-    # Add timing header
-    response.headers["X-Process-Time"] = str(process_time)
-    
-    return response
+    except Exception as e:
+        process_time = time.perf_counter() - start_time
+        logger.error(
+            f"Request failed",
+            extra={
+                "method": request.method,
+                "path": request.url.path,
+                "duration": process_time,
+                "error": str(e),
+                "client_ip": client_ip
+            }
+        )
+        raise
+    finally:
+        ACTIVE_CONNECTIONS.dec()
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
@@ -121,52 +179,92 @@ async def root():
         "docs": "/docs"
     }
 
-@app.get("/health")
+@app.get("/health", tags=["health"])
 async def health_check():
     """
-    Comprehensive health check endpoint.
+    Meta-style comprehensive health check with circuit breaker pattern.
     
     Returns:
-        Dict containing health status of all services
+        Dict containing detailed health status of all services
     """
+    start_time = time.perf_counter()
+    
     health_status = {
         "status": "healthy",
         "timestamp": time.time(),
         "environment": settings.app_env,
-        "services": {}
+        "version": "1.0.0",
+        "uptime": time.time() - getattr(health_check, "_start_time", time.time()),
+        "services": {},
+        "metrics": {
+            "total_requests": REQUEST_COUNT._value._value,
+            "active_connections": ACTIVE_CONNECTIONS._value._value
+        }
     }
     
-    # Check Supabase connection
-    try:
-        supabase = get_supabase_client()
-        if supabase:
-            # Simple query to test database
-            result = supabase.table('profiles').select('count').limit(1).execute()
-            health_status["services"]["supabase"] = "healthy"
-        else:
-            health_status["services"]["supabase"] = "unavailable"
-    except Exception as e:
-        logger.error(f"Supabase health check failed: {e}")
-        health_status["services"]["supabase"] = "unhealthy"
-        health_status["status"] = "degraded"
+    # Set start time on first call
+    if not hasattr(health_check, "_start_time"):
+        health_check._start_time = time.time()
     
-    # Check Redis connection (if configured)
-    try:
-        import redis
-        if settings.redis_url and settings.redis_url != "redis://localhost:6379":
-            r = redis.from_url(settings.redis_url)
-            r.ping()
-            health_status["services"]["redis"] = "healthy"
-        else:
-            health_status["services"]["redis"] = "not_configured"
-    except Exception as e:
-        logger.error(f"Redis health check failed: {e}")
-        health_status["services"]["redis"] = "unhealthy"
+    # Parallel health checks for better performance
+    async def check_supabase():
+        try:
+            supabase = get_supabase_client()
+            if supabase:
+                # Quick health check query with timeout
+                result = await asyncio.wait_for(
+                    asyncio.to_thread(
+                        lambda: supabase.table('profiles').select('count').limit(1).execute()
+                    ),
+                    timeout=2.0
+                )
+                return {"status": "healthy", "response_time": time.perf_counter() - start_time}
+            return {"status": "unavailable", "error": "client_not_initialized"}
+        except asyncio.TimeoutError:
+            return {"status": "timeout", "error": "health_check_timeout"}
+        except Exception as e:
+            return {"status": "unhealthy", "error": str(e)}
+    
+    async def check_redis():
+        try:
+            if settings.redis_url and "localhost" not in settings.redis_url:
+                import redis.asyncio as redis
+                r = redis.from_url(settings.redis_url)
+                await asyncio.wait_for(r.ping(), timeout=1.0)
+                await r.close()
+                return {"status": "healthy", "response_time": time.perf_counter() - start_time}
+            return {"status": "not_configured"}
+        except asyncio.TimeoutError:
+            return {"status": "timeout", "error": "redis_timeout"}
+        except Exception as e:
+            return {"status": "unhealthy", "error": str(e)}
+    
+    # Run health checks concurrently
+    supabase_health, redis_health = await asyncio.gather(
+        check_supabase(),
+        check_redis(),
+        return_exceptions=True
+    )
+    
+    health_status["services"]["supabase"] = supabase_health
+    health_status["services"]["redis"] = redis_health
+    
+    # Determine overall status
+    unhealthy_services = [
+        name for name, service in health_status["services"].items()
+        if isinstance(service, dict) and service.get("status") in ["unhealthy", "timeout"]
+    ]
+    
+    if unhealthy_services:
         health_status["status"] = "degraded"
+        health_status["unhealthy_services"] = unhealthy_services
+    
+    # Calculate total health check time
+    health_status["health_check_duration"] = time.perf_counter() - start_time
     
     # Return appropriate status code
     status_code = 200 if health_status["status"] == "healthy" else 503
-    return JSONResponse(content=health_status, status_code=status_code)
+    return ORJSONResponse(content=health_status, status_code=status_code)
 
 @app.get("/metrics")
 async def metrics():

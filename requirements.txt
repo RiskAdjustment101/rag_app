@@ -1,21 +1,27 @@
-# Core FastAPI dependencies - minimal set for Railway deployment
+# Meta-optimized FastAPI stack for production
 fastapi==0.104.1
-uvicorn==0.24.0
+uvicorn[standard]==0.24.0
+uvloop==0.19.0
+httptools==0.6.1
 python-multipart==0.0.6
 python-dotenv==1.0.0
+
+# Type-safe data validation
 pydantic==2.5.0
 pydantic-settings==2.1.0
 
-# Database and Auth
+# Database and Auth - minimal footprint
 supabase==2.3.0
 
-# Security and JWT  
+# Security - production hardened
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 
-# HTTP client
+# HTTP client - async optimized
 httpx==0.25.2
 
-# Rate Limiting and Monitoring
-slowapi==0.1.9
+# Production monitoring
 prometheus-client==0.19.0
+
+# Performance optimizations
+orjson==3.9.10
