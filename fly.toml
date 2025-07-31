@@ -1,5 +1,5 @@
 # Fly.io configuration for RAG Application Backend
-app = "rag-app-backend"
+app = "rag-app-9pwbjw"
 primary_region = "dfw"
 
 [build]
@@ -35,11 +35,3 @@ primary_region = "dfw"
   memory = "256mb"
   cpu_kind = "shared"
   cpus = 1
-
-# Auto-scaling configuration
-[http_service.auto_stop_machines]
-  enabled = true
-  min_machines_running = 0
-
-[http_service.auto_start_machines]
-  enabled = true
