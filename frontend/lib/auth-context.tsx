@@ -21,10 +21,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // Check if Supabase is properly configured
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      setLoading(false)
+      return
+    }
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       setUser(session?.user ?? null)
+      setLoading(false)
+    }).catch((error) => {
+      console.error('Error getting session:', error)
       setLoading(false)
     })
 
@@ -41,14 +50,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const signIn = async (email: string, password: string) => {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      return { error: { message: 'Supabase not configured' } }
+    }
     return await supabase.auth.signInWithPassword({ email, password })
   }
 
   const signUp = async (email: string, password: string) => {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      return { error: { message: 'Supabase not configured' } }
+    }
     return await supabase.auth.signUp({ email, password })
   }
 
   const signOut = async () => {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      return
+    }
     await supabase.auth.signOut()
   }
 
