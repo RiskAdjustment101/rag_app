@@ -1,18 +1,10 @@
-# Meta-style optimized build configuration for Railway
-[variables]
-PYTHONUNBUFFERED = "1"
-PYTHONDONTWRITEBYTECODE = "1"
-PIP_NO_CACHE_DIR = "1"
-PIP_DISABLE_PIP_VERSION_CHECK = "1"
+# Railway Nixpacks configuration for Python
+[phases.setup]
+nixPkgs = ["python310", "pip"]
+nixLibs = []
 
 [phases.install]
-dependsOn = ["setup"]
-cmds = [
-    "pip install --no-cache-dir -r requirements.txt"
-]
-
-[phases.build]
-dependsOn = ["install"]
+cmds = ["pip install --no-cache-dir -r requirements.txt"]
 
 [start]
-cmd = "python -m uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1 --loop uvloop --http httptools"
+cmd = "python -m uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1"

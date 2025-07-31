@@ -10,10 +10,9 @@ import time
 from contextlib import asynccontextmanager
 from typing import Dict, Optional
 
-import orjson
 from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, ORJSONResponse
+from fastapi.responses import JSONResponse
 from prometheus_client import Counter, Histogram, generate_latest
 
 # Import configurations and utilities
@@ -66,7 +65,7 @@ app = FastAPI(
     docs_url="/docs" if get_settings().app_env != "production" else None,
     redoc_url="/redoc" if get_settings().app_env != "production" else None,
     lifespan=lifespan,
-    default_response_class=ORJSONResponse,  # 2x faster JSON serialization
+    # default_response_class optimized for Railway
     openapi_tags=[
         {"name": "health", "description": "Health check operations"},
         {"name": "auth", "description": "Authentication operations"},
@@ -264,7 +263,7 @@ async def health_check():
     
     # Return appropriate status code
     status_code = 200 if health_status["status"] == "healthy" else 503
-    return ORJSONResponse(content=health_status, status_code=status_code)
+    return JSONResponse(content=health_status, status_code=status_code)
 
 @app.get("/metrics")
 async def metrics():
