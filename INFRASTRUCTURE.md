@@ -9,17 +9,17 @@
 │                                                                         │
 │  ┌─────────────────┐        ┌─────────────────┐      ┌──────────────┐   │
 │  │                 │        │                 │      │              │   │
-│  │  Vercel (CDN)   │◄──────►│  Railway        │◄────►│  Supabase    │   │
+│  │  Vercel (CDN)   │◄──────►│  Render         │◄────►│  Supabase    │   │
 │  │  - Next.js App  │  API   │  - FastAPI      │      │  - Auth      │   │
 │  │  - React UI     │  Calls │  - REST API     │      │  - Database  │   │
-│  │  - Static Files │        │  - WebSockets   │      │  - Storage   │   │
+│  │  - Static Files │        │  - Python 3.10  │      │  - Storage   │   │
 │  │                 │        │                 │      │              │   │
 │  └─────────────────┘        └────────┬────────┘      └──────────────┘   │
 │                                      │                                  │
 │                             ┌────────▼────────┐                         │
 │                             │                 │                         │
 │                             │  Redis Cache    │                         │
-│                             │  (Railway)      │                         │
+│                             │  (Render)       │                         │
 │                             │                 │                         │
 │                             └────────┬────────┘                         │
 │                                      │                                  │
@@ -50,14 +50,14 @@
   - Production: `https://your-app.vercel.app` or custom domain
   - Preview: `https://your-app-git-branch-name.vercel.app`
 
-### 2. **Backend API - Railway**
+### 2. **Backend API - Render**
 - **Purpose**: Hosts FastAPI application
 - **Components**:
   - FastAPI web server
-  - Redis for caching
+  - Redis for caching (Render Redis addon)
   - ChromaDB for vector storage
   - Background job processing
-- **URL**: `https://your-api.railway.app`
+- **URL**: `https://your-app.onrender.com`
 
 ### 3. **Database & Auth - Supabase**
 - **Purpose**: PostgreSQL database and authentication
