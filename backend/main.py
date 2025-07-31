@@ -191,12 +191,9 @@ async def get_profile(current_user: dict = Depends(get_current_user)):
         "message": "Profile endpoint working!"
     }
 
-# API route groups (to be added)
-# from api.routes import auth, documents, chat, rag
-# app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
-# app.include_router(documents.router, prefix="/api/documents", tags=["Documents"])
-# app.include_router(chat.router, prefix="/api/chat", tags=["Chat"])
-# app.include_router(rag.router, prefix="/api/rag", tags=["RAG"])
+# API route groups
+from backend.api.documents import router as documents_router
+app.include_router(documents_router, prefix="/api/documents", tags=["Documents"])
 
 if __name__ == "__main__":
     import uvicorn
