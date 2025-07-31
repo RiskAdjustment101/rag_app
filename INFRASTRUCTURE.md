@@ -9,17 +9,17 @@
 │                                                                         │
 │  ┌─────────────────┐        ┌─────────────────┐      ┌──────────────┐   │
 │  │                 │        │                 │      │              │   │
-│  │  Vercel (CDN)   │◄──────►│  Render         │◄────►│  Supabase    │   │
+│  │  Vercel (CDN)   │◄──────►│  Fly.io         │◄────►│  Supabase    │   │
 │  │  - Next.js App  │  API   │  - FastAPI      │      │  - Auth      │   │
 │  │  - React UI     │  Calls │  - REST API     │      │  - Database  │   │
-│  │  - Static Files │        │  - Python 3.10  │      │  - Storage   │   │
+│  │  - Static Files │        │  - Python 3.11  │      │  - Storage   │   │
 │  │                 │        │                 │      │              │   │
 │  └─────────────────┘        └────────┬────────┘      └──────────────┘   │
 │                                      │                                  │
 │                             ┌────────▼────────┐                         │
 │                             │                 │                         │
 │                             │  Redis Cache    │                         │
-│                             │  (Render)       │                         │
+│                             │  (Fly.io)       │                         │
 │                             │                 │                         │
 │                             └────────┬────────┘                         │
 │                                      │                                  │
@@ -29,7 +29,7 @@
 │          │                  │              │                     │      │
 │          │  ChromaDB        │              │  Together AI        │      │ 
 │          │  Vector Store    │              │  LLM API            │      │
-│          │  (Railway)       │              │                     │      │
+│          │  (Fly.io)        │              │                     │      │
 │          │                  │              │                     │      │
 │          └──────────────────┘              └─────────────────---─┘      │
 │                                                                         │
@@ -50,14 +50,14 @@
   - Production: `https://your-app.vercel.app` or custom domain
   - Preview: `https://your-app-git-branch-name.vercel.app`
 
-### 2. **Backend API - Render**
+### 2. **Backend API - Fly.io**
 - **Purpose**: Hosts FastAPI application
 - **Components**:
   - FastAPI web server
-  - Redis for caching (Render Redis addon)
+  - Redis for caching (Fly.io Redis addon)
   - ChromaDB for vector storage
   - Background job processing
-- **URL**: `https://your-app.onrender.com`
+- **URL**: `https://your-app.fly.dev`
 
 ### 3. **Database & Auth - Supabase**
 - **Purpose**: PostgreSQL database and authentication

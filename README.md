@@ -13,7 +13,7 @@ A Claude-like Retrieval Augmented Generation (RAG) application with document int
 ## 🏗️ Architecture
 
 - **Frontend**: Next.js + TypeScript + Tailwind CSS (Hosted on Vercel)
-- **Backend**: FastAPI + Python (Hosted on Render)
+- **Backend**: FastAPI + Python (Hosted on Fly.io)
 - **Database**: PostgreSQL via Supabase
 - **Vector Store**: ChromaDB
 - **LLM**: Together AI (Llama 2 70B)
@@ -75,7 +75,7 @@ A Claude-like Retrieval Augmented Generation (RAG) application with document int
 ## 🚀 Deployment
 
 - **Frontend**: Automatically deployed to Vercel on push to main
-- **Backend**: Deployed to Railway via GitHub Actions
+- **Backend**: Deployed to Fly.io via GitHub Actions
 - **Database**: Managed by Supabase
 
 See [INFRASTRUCTURE.md](./INFRASTRUCTURE.md) for detailed deployment instructions.
