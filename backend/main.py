@@ -13,9 +13,9 @@ import time
 from typing import Optional
 
 # Import configurations and utilities
-from config.settings import get_settings
-from auth.middleware import get_current_user
-from auth.supabase_client import get_supabase_client
+from backend.config.settings import get_settings
+from backend.auth.middleware import get_current_user
+from backend.auth.supabase_client import get_supabase_client
 
 # Configure logging
 logging.basicConfig(

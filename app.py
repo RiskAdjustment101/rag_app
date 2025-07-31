@@ -4,7 +4,7 @@ Render-optimized entry point for RAG API
 import os
 import sys
 import logging
-from main import app
+from backend.main import app
 
 # Configure logging for Render
 logging.basicConfig(

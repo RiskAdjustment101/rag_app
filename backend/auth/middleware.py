@@ -7,7 +7,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 import logging
 from typing import Dict, Optional
-from auth.supabase_client import get_supabase_client
+from backend.auth.supabase_client import get_supabase_client
 
 logger = logging.getLogger(__name__)
 

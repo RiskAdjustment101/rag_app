@@ -5,7 +5,7 @@ Supabase client configuration and management.
 from supabase import create_client, Client
 from typing import Optional
 import logging
-from config.settings import get_settings
+from backend.config.settings import get_settings
 
 logger = logging.getLogger(__name__)
 
