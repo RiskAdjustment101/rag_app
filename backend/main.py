@@ -193,7 +193,10 @@ async def get_profile(current_user: dict = Depends(get_current_user)):
 
 # API route groups
 from backend.api.documents import router as documents_router
+from backend.api.rag import router as rag_router
+
 app.include_router(documents_router, prefix="/api/documents", tags=["Documents"])
+app.include_router(rag_router, prefix="/api", tags=["RAG"])
 
 if __name__ == "__main__":
     import uvicorn
