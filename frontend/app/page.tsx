@@ -12,7 +12,7 @@ export default function LandingPage() {
               <h1 className="text-2xl font-bold text-claude-orange">RAG App</h1>
             </div>
             <div className="flex items-center space-x-4">
-              <Link href="/login" className="text-claude-gray-600 hover:text-claude-gray-900 dark:text-claude-gray-300 dark:hover:text-white">
+              <Link href="/login" className="text-claude-gray-600 hover:text-claude-gray-900 dark:text-claude-gray-300 dark:hover:text-white transition">
                 Sign In
               </Link>
               <Link href="/register" className="bg-claude-orange text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition">
