@@ -116,6 +116,9 @@ wheels/
 .installed.cfg
 *.egg
 
+# Allow frontend lib directory
+!frontend/lib/
+
 # Railway
 railway.json
 
