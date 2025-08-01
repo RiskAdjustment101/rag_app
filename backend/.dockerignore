@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.coverage
+.pytest_cache/
+htmlcov/
+
+# Virtual environments
+env/
+venv/
+.venv/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Local data
+chroma_data/
+*.db
+*.sqlite
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.*
+
+# Fly.io
+fly.toml
