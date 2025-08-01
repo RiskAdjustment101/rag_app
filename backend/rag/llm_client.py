@@ -1,6 +1,6 @@
 """
 LLM Client for RAG responses
-Supports Together AI and OpenAI
+Supports Groq, Together AI, and OpenAI
 """
 import os
 from typing import List, Dict, Any, Optional
@@ -14,12 +14,25 @@ class LLMClient:
     """Client for generating RAG responses using LLMs"""
     
     def __init__(self):
+        self.groq_client = None
         self.together_client = None
         self.openai_client = None
         self._initialize_clients()
     
     def _initialize_clients(self):
         """Initialize LLM clients based on available API keys"""
+        # Groq setup (fastest, uses OpenAI-compatible API)
+        groq_api_key = os.getenv("GROQ_API_KEY")
+        if groq_api_key:
+            try:
+                self.groq_client = openai.OpenAI(
+                    api_key=groq_api_key,
+                    base_url="https://api.groq.com/openai/v1"
+                )
+                logger.info("Groq client initialized")
+            except Exception as e:
+                logger.warning(f"Failed to initialize Groq: {e}")
+        
         # Together AI setup
         together_api_key = os.getenv("TOGETHER_API_KEY")
         if together_api_key:
@@ -38,7 +51,7 @@ class LLMClient:
             except Exception as e:
                 logger.warning(f"Failed to initialize OpenAI: {e}")
         
-        if not self.together_client and not self.openai_client:
+        if not self.groq_client and not self.together_client and not self.openai_client:
             logger.warning("No LLM clients available - responses will be limited")
     
     async def generate_response(
@@ -68,8 +81,10 @@ class LLMClient:
             # Create user prompt with context
             user_prompt = self._create_user_prompt(query, context, chat_history)
             
-            # Generate response using available client
-            if self.together_client:
+            # Generate response using available client (Groq is prioritized for speed)
+            if self.groq_client:
+                response = await self._generate_groq_response(system_prompt, user_prompt)
+            elif self.together_client:
                 response = await self._generate_together_response(system_prompt, user_prompt)
             elif self.openai_client:
                 response = await self._generate_openai_response(system_prompt, user_prompt)
@@ -155,6 +170,26 @@ Guidelines:
         
         return "\n".join(prompt_parts)
     
+    async def _generate_groq_response(self, system_prompt: str, user_prompt: str) -> str:
+        """Generate response using Groq (ultra-fast inference)"""
+        try:
+            response = self.groq_client.chat.completions.create(
+                model="mixtral-8x7b-32768",  # Groq's fastest model
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                max_tokens=1000,
+                temperature=0.7,
+                top_p=0.9
+            )
+            
+            return response.choices[0].message.content.strip()
+            
+        except Exception as e:
+            logger.error(f"Groq request failed: {e}")
+            raise
+    
     async def _generate_together_response(self, system_prompt: str, user_prompt: str) -> str:
         """Generate response using Together AI"""
         try:
@@ -231,7 +266,9 @@ Guidelines:
     
     def _get_active_model(self) -> str:
         """Get the name of the active model"""
-        if self.together_client:
+        if self.groq_client:
+            return "groq/mixtral-8x7b-32768"
+        elif self.together_client:
             return "meta-llama/Llama-2-70b-chat-hf"
         elif self.openai_client:
             return "gpt-3.5-turbo"
