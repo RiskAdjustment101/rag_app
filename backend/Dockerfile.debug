@@ -1,0 +1,31 @@
+# Debug Dockerfile - Simplified version
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install only basic dependencies first
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy and install minimal requirements
+COPY requirements-minimal.txt .
+RUN pip install --no-cache-dir -r requirements-minimal.txt
+
+# Copy test app
+COPY test_simple.py .
+COPY . .
+
+# Set environment
+ENV PYTHONUNBUFFERED=1
+ENV APP_ENV=production
+
+# Expose port
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8080/test || exit 1
+
+# Run simple test app first
+CMD ["python", "test_simple.py"]
